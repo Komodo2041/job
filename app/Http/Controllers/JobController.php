@@ -17,8 +17,18 @@ class JobController extends Controller
     }
 
     public function list(Request $request) {
-        $jobs = Offer::get();
-        return view("jobs", ["jobs" => $jobs]);
+        $jobs = Offer::query();
+        $types = Types::get();
+        $typetable = $types->pluck("name", "id")->toArray();
+ 
+        if (null !== $request->input('type_id') && $request->input('type_id') != "-") {
+           $jobs->where("type_id", $request->input('type_id'));
+        }
+        if (null !== $request->input('keys') && $request->input('keys') != "") {
+           $jobs->where("title", "like", "%".trim($request->input('keys')) ."%")->orWhere("location", "like", "%".trim($request->input('keys')) ."%")->orWhere("body", "like", "%".trim($request->input('keys')) ."%");          
+        }
+        $jobs = $jobs->latest()->get();
+        return view("jobs", ["jobs" => $jobs, "types" => $types, "typetable" => $typetable, "search" => $request->all()]);
     }
 
     public function add(Request $request) {

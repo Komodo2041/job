@@ -25,8 +25,13 @@ class JobController extends Controller
            $jobs->where("type_id", $request->input('type_id'));
         }
         if (null !== $request->input('keys') && $request->input('keys') != "") {
-           $jobs->where("title", "like", "%".trim($request->input('keys')) ."%")->orWhere("location", "like", "%".trim($request->input('keys')) ."%")->orWhere("body", "like", "%".trim($request->input('keys')) ."%");          
-        }
+          $keys = trim($request->input('keys'));
+          $jobs->where(function ($query) use ($keys) {
+            $query->where("title", "like", "%$keys%")
+                  ->orWhere("location", "like", "%$keys%")
+                  ->orWhere("body", "like", "%$keys%");
+         });
+          }
         $jobs = $jobs->latest()->get();
         return view("jobs", ["jobs" => $jobs, "types" => $types, "typetable" => $typetable, "search" => $request->all()]);
     }
